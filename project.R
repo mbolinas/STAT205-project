@@ -14,6 +14,17 @@ outliers = function(v,length){
   return(outliers);
 }
 
+# Test for checking if data is normally distributed
+swt = function(v){
+  r = shapiro.test(v);
+  bool = FALSE;
+  if(r$p.value > .05){
+    # passed the test
+    bool = TRUE;
+  }
+  return(bool);
+}
+
 acceptnull <- function(p){
    if(p < .05){
      return(FALSE)
