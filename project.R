@@ -1,12 +1,12 @@
 
 # Test for checking if outliers exist in the data
 outliers = function(v,length){
-  vq1 = quantile(v,0.25); 
-  vq3 = quantile(v,0.75);
+  vq1 = quantile(v,0.25, type=6); 
+  vq3 = quantile(v,0.75, type=6);
   outliers = FALSE; #Start off with assumption
   for(i in 1:length){
-    if(v[i] < (vq1 - 1.5*IQR(v)) | 
-       v[i] > (vq3 + 1.5*IQR(v))){
+    if(v[i] < (vq1 - 1.5*IQR(v, type=6)) | 
+       v[i] > (vq3 + 1.5*IQR(v, type=6))){
       outliers = TRUE;
       return(outliers);
     }
