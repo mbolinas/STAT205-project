@@ -52,14 +52,30 @@ twosample <- function(v1, v2, size1, size2){
 }
 
 ztest <- function(v1, v2, size1, size2){
-  
+  ztestp = prop.test(c(sum(v1), sum(v2)), n=c(size1, size2))$p.value
+  cat(sprintf("p-value (z-test): %s\n", ztestp))
+  if(acceptnull(ztestp) == TRUE)
+    cat(sprintf("We accept the null hypothesis\n"))
+  else
+    cat(sprintf("We reject the null hypothesis\n"))
 }
 
 ftest <- function(v1, v2, size1, size2){
-  
+  #f-test requires data to be normal: shapiro-wilk test of normality
+  if(shapiro.test(v1)$p.value > .05 && shapiro.test(v2)$p.value > .05){
+    ftestp = var.test(v1, v2)$p.value
+    cat(sprintf("p-value (f-test): %s\n", ftestp))
+    if(acceptnull(ftestp) == TRUE)
+      cat(sprintf("We accept the null hypothesis\n"))
+    else
+      cat(sprintf("We reject the null hypothesis\n"))
+  } else{
+    print("Cannot run f-test for equal variance: data not normal")
+  }
 }
 
 main <- function(){
+  print("Import data (.csv) to test...")
   x <- read.csv(file=file.choose(), header=TRUE,sep=",");
   x1 <- x[,1];
   y1 <- x[,2];
@@ -71,24 +87,28 @@ main <- function(){
   DI <- as.character(x[2,3]);
   x1y1 <- c(x1,y1);
  
-  if(DI == "I"){
-    if(CSK == "C"){
-      print("center, independent")
-    }else if(CSK == "S"){
-      print("spread, independent")
-    }else{
-      print("binary, independent")
+  
+  if(CSK == "K"){
+    #run z test equal proportions
+    print("Running z-test of equal proportions on data...")
+    ztest(x1, y1, x1length, y1length)
+  }
+  else if(CSK == "S"){
+    #run f test equal variance
+    print("Running f-test of equal variance on data...")
+    ftest(x1, y1, x1length, y1length)
+  }
+  else{
+    if(DI =="I"){
+      #either two sample t or pooled two sample t
+      #check data size, outliers, distribution, to pick
     }
-  }else{
-    if(CSK == "C"){
-      print("center, dependent")
-    }else if(CSK == "S"){
-      print("spread, dependent")
-    }else{
-      print("binary, dependent")
+    else{
+      #either matched pairs t or sign
+      #check data size, outliers, distribution, to pick
     }
   }
-   
+  print("[End of script]")
 }
 
 main()
