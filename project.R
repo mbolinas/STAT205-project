@@ -1,9 +1,17 @@
 
-outliers <- function(vector, size){
-  q1 <- quartile(vector, .25);
-  q3 <- quartile(vector, .75);
-  hasoutliers = FALSE;
-  
+# Test for checking if outliers exist in the data
+outliers = function(v,length){
+  vq1 = quantile(v,0.25); 
+  vq3 = quantile(v,0.75);
+  outliers = FALSE; #Start off with assumption
+  for(i in 1:length){
+    if(v[i] < (vq1 - 1.5*IQR(v)) | 
+       v[i] > (vq3 + 1.5*IQR(v))){
+      outliers = TRUE;
+      return(outliers);
+    }
+  }
+  return(outliers);
 }
 
 acceptnull <- function(p){
