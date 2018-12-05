@@ -47,10 +47,36 @@ vectordiff <- function(v1, v2){
 
 
 matchedpairst <- function(v1,v2,size1,size2){
+  valid = TRUE
+  #both vectors v1 and v2 must satisfy ALL:
+  #no outliers OR >39 entries
+  #normally distributed
+  #^^if either are false, test cannot be run
+  if(swt(v1) == FALSE | swt(v2) == FALSE)
+    valid = FALSE
+  if(outliers(v1, size1) == TRUE | size1 < 40)
+    valid = FALSE
+  if(outliers(v2, size2) == TRUE | size2 < 40)
+    valid = FALSE
   
+  if(valid == TRUE){
+    dif = vectordiff(v1, v2, size1, size2)
+    if(sd(dif) == 0){
+      print("Both columns of data are identical")
+    } else{
+      ttestp = t.test(dif)$p.value
+      cat(sprintf("p-value: %s\n", ttestp))
+      if(acceptnull(ttestp) == TRUE)
+        cat(sprintf("We accept the null hypothesis\n"))
+      else
+        cat(sprintf("We reject the null hypothesis\n"))
+    }
+  }
+  else
+    print("Cannot run matched pairs test: data is not normal, contains outliers, or is too small in sample size")
 }
 
-sign <- function(v1,v2,size1,size2){
+signt <- function(v1,v2,size1,size2){
   
 }
 
@@ -117,6 +143,9 @@ main <- function(){
     else{
       #either matched pairs t or sign
       #check data size, outliers, distribution, to pick
+      
+      #matchedpairst(x1, y1, x1length, y1length)
+      #signt(x1, y1, x1length, y1length)
     }
   }
   print("[End of script]")
