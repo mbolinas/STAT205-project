@@ -45,12 +45,12 @@ vectordiff <- function(v1, v2){
   }
 }
 
-matchedtest<- function(v,length){
-  if(swt(v) & (!outlier(v,length) | length >= 40))
-    mtest = TRUE;
+matchedtest <- function(v, length){
+  if(swt(v) & (!outliers(v,length) | length >= 40))
+    mtest = TRUE
   else
-    mtest = FALSE;
-  return(mtest);
+    mtest = FALSE
+  return(mtest)
 }
 
 matchedpairst <- function(v1,v2,size1,size2){
@@ -81,7 +81,7 @@ matchedpairst <- function(v1,v2,size1,size2){
       ttestp = t.test(dif)$p.value
       cat(sprintf("p-value (matched-pairs): %s\n", ttestp))
       if(acceptnull(ttestp) == TRUE)
-        cat(sprintf("We accept the null hypothesis\n"))
+        cat(sprintf("We fail to reject the null hypothesis\n"))
       else
         cat(sprintf("We reject the null hypothesis\n"))
     }
@@ -97,12 +97,13 @@ signt <- function(v1,v2,size1,size2){
   signtp = SIGN.test(v1, v2)$p.value
   cat(sprintf("p-value (sign-test): %s\n", signtp))
   if(acceptnull(signtp) == TRUE)
-    cat(sprintf("We accept the null hypothesis\n"))
+    cat(sprintf("We fail to reject the null hypothesis\n"))
   else
     cat(sprintf("We reject the null hypothesis\n"))
 }
 
 pooled <- function(v1, v2, size1, size2){
+  cat(sprintf("Running pooled test on data...\n"))
   combined = c(v1,v2);
   ttest = t.test(combined);
   pttestp = ttest$p.value;
@@ -116,12 +117,13 @@ pooled <- function(v1, v2, size1, size2){
 }
 
 twosample <- function(v1, v2, size1, size2){
-   if(matchedtest(v1,size1) == TRUE & matchedtest(v2,size2) == TRUE){
-    diffs = vectordiff(v1,v1,size1,size2);
+  cat(sprintf("Running two sample test on data...\n"))
+   if(matchedtest(v1, size1) == TRUE & matchedtest(v2, size2) == TRUE){
+    diffs = vectordiff(v1,v2);
     if(sd(diffs) != 0){
-      ttest = t.test(vec1,vec2);
+      ttest = t.test(v1,v2);
       tttest = ttest$p.value;
-      cat(sprintf("p-value (two sample t): %s\n", pttestp))
+      cat(sprintf("p-value (two sample t): %s\n", tttest))
       if(acceptnull(tttest) == TRUE){
         cat(sprintf("We fail to reject the null hypothesis\n")); 
       }
@@ -130,7 +132,7 @@ twosample <- function(v1, v2, size1, size2){
       }
     }
     else{
-      print("The differences are constant");
+      cat(sprintf("Both columns of data are identical\n"))
     }
   }
   else{
@@ -143,7 +145,7 @@ ztest <- function(v1, v2, size1, size2){
   ztestp = prop.test(c(sum(v1), sum(v2)), n=c(size1, size2))$p.value
   cat(sprintf("p-value (z-test): %s\n", ztestp))
   if(acceptnull(ztestp) == TRUE)
-    cat(sprintf("We accept the null hypothesis\n"))
+    cat(sprintf("We fail to reject the null hypothesis\n"))
   else
     cat(sprintf("We reject the null hypothesis\n"))
 }
@@ -155,11 +157,11 @@ ftest <- function(v1, v2, size1, size2){
     ftestp = var.test(v1, v2)$p.value
     cat(sprintf("p-value (f-test): %s\n", ftestp))
     if(acceptnull(ftestp) == TRUE)
-      cat(sprintf("We accept the null hypothesis\n"))
+      cat(sprintf("We fail to reject the null hypothesis\n"))
     else
       cat(sprintf("We reject the null hypothesis\n"))
   } else{
-    print("Cannot run f-test for equal variance: data not normal")
+    cat(sprintf("Cannot run f-test for equal variance: data not normal\n"))
   }
 }
 
@@ -178,7 +180,8 @@ main <- function(){
   
   sd1 <- sd(x1);
   sd2 <- sd(y1);
- 
+  #print(x1)
+  #print(y1)
   
   if(CSK == "K"){
     #run z test equal proportions
@@ -190,8 +193,6 @@ main <- function(){
   }
   else{
     if(DI =="I"){
-      #either two sample t or pooled two sample t
-      #check data size, outliers, distribution, to pick
       if(swt(x1) == TRUE && swt(y1) == TRUE){
         if(sd1 > sd2){
           checkRatio = sd1/sd2;
@@ -201,13 +202,11 @@ main <- function(){
         }
         if(checkRatio <= 2){
           # The data passed the test
-          print("Running pooled two sample t test on data...");
           pooled(x1,y1,x1length,y1length);
         }
         else{
           # The data did not pass the test
-          print("The variances did not pass the test");
-          printf("Running the two sample t test on data");
+          cat(sprintf("The variances did not pass the test for pooled; running two sample instead\n"))
           twosample(x1,y1,x1length,y1length);
         }
       }
@@ -216,11 +215,8 @@ main <- function(){
       }
     }
     else{
-      #either matched pairs t or sign
-      #check data size, outliers, distribution, to pick
-      
+      #if matched pairs fails, it will run sign test
       matchedpairst(x1, y1, x1length, y1length)
-      #signt(x1, y1, x1length, y1length)
     }
   }
   cat(sprintf("\n[End of script]\n"))
