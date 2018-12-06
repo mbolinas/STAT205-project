@@ -45,6 +45,13 @@ vectordiff <- function(v1, v2){
   }
 }
 
+matchedtest<- function(v,length){
+  if(swt(v) & (!outlier(v,length) | length >= 40))
+    mtest = TRUE;
+  else
+    mtest = FALSE;
+  return(mtest);
+}
 
 matchedpairst <- function(v1,v2,size1,size2){
   cat(sprintf("Running matched pairs test on data...\n"))
@@ -96,7 +103,14 @@ signt <- function(v1,v2,size1,size2){
 }
 
 pooled <- function(v1, v2, size1, size2){
-  
+  combined = c(v1,v2);
+  ttest = t.test(combined);
+  pttestp = ttest$p.value;
+  cat(sprintf("p-value (pooled two sample t): %s\n", pttestp))
+  if(acceptnull(pttestp) == TRUE)
+    cat(sprintf("We fail to reject the null hypothesis\n"));
+  else
+    cat(sprintf("We reject the null hypothesis\n"));
 }
 
 twosample <- function(v1, v2, size1, size2){
@@ -154,6 +168,27 @@ main <- function(){
     if(DI =="I"){
       #either two sample t or pooled two sample t
       #check data size, outliers, distribution, to pick
+      if(swt(x1) == TRUE && swt(y1) == TRUE){
+        if(sd1 > sd2)
+          checkRatio = sd1/sd2;
+        else
+          checkRatio = sd2/sd1;
+        
+        if(checkRatio <= 2){
+          # The data passed the test
+          print("Running pooled two sample t test on data...");
+          pooled(x1,y1,x1length,y1length);
+        }
+        else{
+          # The data did not pass the test
+          print("The variances did not pass the test");
+          printf("Running the two sample t test on data");
+          twosample(x1,y1,x1length,y1length);
+        }
+      }
+      else{
+        print("Data is not normally distributed");
+      }
     }
     else{
       #either matched pairs t or sign
