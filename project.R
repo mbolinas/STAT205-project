@@ -107,14 +107,35 @@ pooled <- function(v1, v2, size1, size2){
   ttest = t.test(combined);
   pttestp = ttest$p.value;
   cat(sprintf("p-value (pooled two sample t): %s\n", pttestp))
-  if(acceptnull(pttestp) == TRUE)
+  if(acceptnull(pttestp) == TRUE){
     cat(sprintf("We fail to reject the null hypothesis\n"));
-  else
+  }
+  else{
     cat(sprintf("We reject the null hypothesis\n"));
+  }
 }
 
 twosample <- function(v1, v2, size1, size2){
-  
+   if(matchedtest(v1,size1) == TRUE & matchedtest(v2,size2) == TRUE){
+    diffs = vectordiff(v1,v1,size1,size2);
+    if(sd(diffs) != 0){
+      ttest = t.test(vec1,vec2);
+      tttest = ttest$p.value;
+      cat(sprintf("p-value (two sample t): %s\n", pttestp))
+      if(acceptnull(tttest) == TRUE){
+        cat(sprintf("We fail to reject the null hypothesis\n")); 
+      }
+      else{
+        cat(sprintf("We reject the null hypothesis\n")); 
+      }
+    }
+    else{
+      print("The differences are constant");
+    }
+  }
+  else{
+    print("Data fails matchtest");
+  }
 }
 
 ztest <- function(v1, v2, size1, size2){
@@ -154,6 +175,9 @@ main <- function(){
   CSK <- as.character(x[1,3]);
   DI <- as.character(x[2,3]);
   x1y1 <- c(x1,y1);
+  
+  sd1 <- sd(x1);
+  sd2 <- sd(y1);
  
   
   if(CSK == "K"){
@@ -169,11 +193,12 @@ main <- function(){
       #either two sample t or pooled two sample t
       #check data size, outliers, distribution, to pick
       if(swt(x1) == TRUE && swt(y1) == TRUE){
-        if(sd1 > sd2)
+        if(sd1 > sd2){
           checkRatio = sd1/sd2;
-        else
+        }
+        else{
           checkRatio = sd2/sd1;
-        
+        }
         if(checkRatio <= 2){
           # The data passed the test
           print("Running pooled two sample t test on data...");
