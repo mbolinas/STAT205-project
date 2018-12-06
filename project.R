@@ -47,37 +47,52 @@ vectordiff <- function(v1, v2){
 
 
 matchedpairst <- function(v1,v2,size1,size2){
+  cat(sprintf("Running matched pairs test on data...\n"))
   valid = TRUE
   #both vectors v1 and v2 must satisfy ALL:
   #no outliers OR >39 entries
   #normally distributed
   #^^if either are false, test cannot be run
-  if(swt(v1) == FALSE | swt(v2) == FALSE)
+  if(swt(v1) == FALSE | swt(v2) == FALSE){
+    cat(sprintf("Cannot run matched pairs test: data is not normal\n"))
     valid = FALSE
-  if(outliers(v1, size1) == TRUE | size1 < 40)
+  }
+  if(outliers(v1, size1) == TRUE & size1 < 40){
+    cat(sprintf("Cannot run matched pairs test: data contains outliers with small sample size\n"))
     valid = FALSE
-  if(outliers(v2, size2) == TRUE | size2 < 40)
+  }
+  if(outliers(v2, size2) == TRUE & size2 < 40){
+    cat(sprintf("Cannot run matched pairs test: data contains outliers with small sample size\n"))
     valid = FALSE
+  }
   
   if(valid == TRUE){
-    dif = vectordiff(v1, v2, size1, size2)
+    dif = vectordiff(v1, v2)
     if(sd(dif) == 0){
-      print("Both columns of data are identical")
+      cat(sprintf("Both columns of data are identical\n"))
     } else{
       ttestp = t.test(dif)$p.value
-      cat(sprintf("p-value: %s\n", ttestp))
+      cat(sprintf("p-value (matched-pairs): %s\n", ttestp))
       if(acceptnull(ttestp) == TRUE)
         cat(sprintf("We accept the null hypothesis\n"))
       else
         cat(sprintf("We reject the null hypothesis\n"))
     }
   }
-  else
-    print("Cannot run matched pairs test: data is not normal, contains outliers, or is too small in sample size")
+  else{
+    cat(sprintf("(Matched pairs test failed. Trying sign test...)\n"))
+    signt(v1, v2, size1, size2)
+  }
 }
 
 signt <- function(v1,v2,size1,size2){
-  
+  cat(sprintf("Running sign test on data...\n"))
+  signtp = SIGN.test(v1, v2)$p.value
+  cat(sprintf("p-value (sign-test): %s\n", signtp))
+  if(acceptnull(signtp) == TRUE)
+    cat(sprintf("We accept the null hypothesis\n"))
+  else
+    cat(sprintf("We reject the null hypothesis\n"))
 }
 
 pooled <- function(v1, v2, size1, size2){
@@ -89,6 +104,7 @@ twosample <- function(v1, v2, size1, size2){
 }
 
 ztest <- function(v1, v2, size1, size2){
+  cat(sprintf("Running z-test of equal proportions on data...\n"))
   ztestp = prop.test(c(sum(v1), sum(v2)), n=c(size1, size2))$p.value
   cat(sprintf("p-value (z-test): %s\n", ztestp))
   if(acceptnull(ztestp) == TRUE)
@@ -98,6 +114,7 @@ ztest <- function(v1, v2, size1, size2){
 }
 
 ftest <- function(v1, v2, size1, size2){
+  cat(sprintf("Running f-test of equal variance on data...\n"))
   #f-test requires data to be normal: shapiro-wilk test of normality
   if(shapiro.test(v1)$p.value > .05 && shapiro.test(v2)$p.value > .05){
     ftestp = var.test(v1, v2)$p.value
@@ -112,7 +129,7 @@ ftest <- function(v1, v2, size1, size2){
 }
 
 main <- function(){
-  print("Import data (.csv) to test...")
+  cat(sprintf("[Import data (.csv file) to test...]\n\n"))
   x <- read.csv(file=file.choose(), header=TRUE,sep=",");
   x1 <- x[,1];
   y1 <- x[,2];
@@ -127,12 +144,10 @@ main <- function(){
   
   if(CSK == "K"){
     #run z test equal proportions
-    print("Running z-test of equal proportions on data...")
     ztest(x1, y1, x1length, y1length)
   }
   else if(CSK == "S"){
     #run f test equal variance
-    print("Running f-test of equal variance on data...")
     ftest(x1, y1, x1length, y1length)
   }
   else{
@@ -144,11 +159,11 @@ main <- function(){
       #either matched pairs t or sign
       #check data size, outliers, distribution, to pick
       
-      #matchedpairst(x1, y1, x1length, y1length)
+      matchedpairst(x1, y1, x1length, y1length)
       #signt(x1, y1, x1length, y1length)
     }
   }
-  print("[End of script]")
+  cat(sprintf("\n[End of script]\n"))
 }
 
 main()
